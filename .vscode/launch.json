@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Live server: https://paprishop.com/vms/external_api/ (the default in AppConfig).
+      "name": "VMS (live)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
+      // Local XAMPP from a phone on the same Wi-Fi (change the IP if the PC's IP changes).
+      "name": "VMS (local XAMPP)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": ["--dart-define=API_BASE_URL=http://192.168.0.199/vms/external_api/"]
+    }
+  ]
+}
