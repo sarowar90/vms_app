@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +12,10 @@ import 'package:vms_app/features/dashboard/domain/repositories/dashboard_reposit
 import 'package:vms_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 
 void main() {
-  testWidgets('shows the login page when there is no saved session', (tester) async {
+  testWidgets('shows the login page when there is no saved session (phone size, no overflow)', (tester) async {
+    tester.view.physicalSize = const Size(360 * 3, 780 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
@@ -20,8 +24,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('VMS Login'), findsOneWidget);
+    expect(find.text('Visitor Management System'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
     expect(find.text('Username'), findsOneWidget);
+
+    // Empty submit shows field errors.
+    await tester.tap(find.text('Sign in'));
+    await tester.pump();
+    expect(find.text('Enter username'), findsOneWidget);
+    expect(find.text('Enter password'), findsOneWidget);
   });
 
   test('dashboard stats provider exposes repository data', () async {
