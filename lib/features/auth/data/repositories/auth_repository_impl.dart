@@ -13,12 +13,11 @@ class AuthRepositoryImpl implements AuthRepository {
   final TokenStorage _tokens;
 
   @override
-  Future<Result<User>> login({required String username, required String password}) =>
-      guard(() async {
-        final response = await _remote.login(username, password);
-        await _tokens.write(response.token);
-        return response.user;
-      });
+  Future<Result<User>> login({required String username, required String password}) => guard(() async {
+    final response = await _remote.login(username, password);
+    await _tokens.write(response.token);
+    return response.user;
+  });
 
   @override
   Future<Result<User?>> restoreSession() async {

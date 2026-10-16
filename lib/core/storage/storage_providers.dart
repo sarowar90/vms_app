@@ -6,9 +6,7 @@ final sharedPreferencesProvider = Provider<SharedPreferences>(
   (ref) => throw UnimplementedError('sharedPreferencesProvider must be overridden'),
 );
 
-final tokenStorageProvider = Provider<TokenStorage>(
-  (ref) => TokenStorage(ref.watch(sharedPreferencesProvider)),
-);
+final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage(ref.watch(sharedPreferencesProvider)));
 
 /// Persists the API bearer token.
 class TokenStorage {

@@ -21,16 +21,12 @@ final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>(
 );
 
 final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => AuthRepositoryImpl(
-    ref.watch(authRemoteDataSourceProvider),
-    ref.watch(tokenStorageProvider),
-  ),
+  (ref) => AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider), ref.watch(tokenStorageProvider)),
 );
 
 final loginUseCaseProvider = Provider((ref) => Login(ref.watch(authRepositoryProvider)));
 final logoutUseCaseProvider = Provider((ref) => Logout(ref.watch(authRepositoryProvider)));
-final restoreSessionUseCaseProvider =
-    Provider((ref) => RestoreSession(ref.watch(authRepositoryProvider)));
+final restoreSessionUseCaseProvider = Provider((ref) => RestoreSession(ref.watch(authRepositoryProvider)));
 
 // ---------- Session state ----------
 
@@ -64,8 +60,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
 
 // ---------- Login form ----------
 
-final loginControllerProvider =
-    AsyncNotifierProvider.autoDispose<LoginController, void>(LoginController.new);
+final loginControllerProvider = AsyncNotifierProvider.autoDispose<LoginController, void>(LoginController.new);
 
 class LoginController extends AsyncNotifier<void> {
   @override
@@ -73,9 +68,7 @@ class LoginController extends AsyncNotifier<void> {
 
   Future<void> submit({required String username, required String password}) async {
     state = const AsyncLoading();
-    final result = await ref.read(loginUseCaseProvider)(
-      LoginParams(username: username, password: password),
-    );
+    final result = await ref.read(loginUseCaseProvider)(LoginParams(username: username, password: password));
     if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):

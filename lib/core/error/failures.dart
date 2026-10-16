@@ -13,6 +13,12 @@ class ServerFailure extends Failure {
 
   final int? statusCode;
   final Map<String, List<String>>? errors;
+
+  /// First validation message for a form field, if any.
+  String? fieldError(String field) => errors?[field]?.first;
+
+  /// The API answers 403 with `errors.blacklisted` when the visitor is blacklisted.
+  bool get isBlacklisted => errors?.containsKey('blacklisted') ?? false;
 }
 
 class UnauthorizedFailure extends Failure {

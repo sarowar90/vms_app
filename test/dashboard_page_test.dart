@@ -32,47 +32,51 @@ class _FakeAuth extends AuthNotifier {
 
 class _FakeRepo implements DashboardRepository {
   @override
-  Future<Result<DashboardStats>> getStats() async => Success(DashboardStats(
-        todayCheckins: 4,
-        insideNow: 3,
-        todayCheckouts: 1,
-        pendingApprovals: 2,
-        expectedToday: 2,
-        todayPersons: 5,
-        monthVisits: 70,
-        totalVisitors: 25,
-        recent: [
-          Visit(
-            id: 1,
-            visitNo: 'V-1',
-            visitCode: 'ABC',
-            visitorName: 'Abul Kalam Azad',
-            visitorCompany: 'PRAN-RFL Group',
-            hostName: 'Farhana Islam',
-            visitType: VisitType.vendor,
-            status: VisitStatus.checkedIn,
-            checkInAt: DateTime(2026, 10, 15, 11, 57),
-          ),
-          Visit(
-            id: 2,
-            visitNo: 'V-2',
-            visitCode: 'DEF',
-            visitorName: 'Rezaul Karim',
-            hostName: 'Sharmin Akter',
-            visitType: VisitType.meeting,
-            status: VisitStatus.pending,
-            scheduledAt: DateTime(2026, 10, 15, 16, 30),
-          ),
-        ],
-      ));
+  Future<Result<DashboardStats>> getStats() async => Success(
+    DashboardStats(
+      todayCheckins: 4,
+      insideNow: 3,
+      todayCheckouts: 1,
+      pendingApprovals: 2,
+      expectedToday: 2,
+      todayPersons: 5,
+      monthVisits: 70,
+      totalVisitors: 25,
+      recent: [
+        Visit(
+          id: 1,
+          visitNo: 'V-1',
+          visitCode: 'ABC',
+          visitorName: 'Abul Kalam Azad',
+          visitorCompany: 'PRAN-RFL Group',
+          hostName: 'Farhana Islam',
+          visitType: VisitType.vendor,
+          status: VisitStatus.checkedIn,
+          checkInAt: DateTime(2026, 10, 15, 11, 57),
+        ),
+        Visit(
+          id: 2,
+          visitNo: 'V-2',
+          visitCode: 'DEF',
+          visitorName: 'Rezaul Karim',
+          hostName: 'Sharmin Akter',
+          visitType: VisitType.meeting,
+          status: VisitStatus.pending,
+          scheduledAt: DateTime(2026, 10, 15, 16, 30),
+        ),
+      ],
+    ),
+  );
 
   @override
-  Future<Result<DashboardCharts>> getCharts({required int days}) async => Success(DashboardCharts(
-        daily: [for (var i = 0; i < days; i++) DailyCount(DateTime(2026, 10, 1 + i), i % 9)],
-        byType: const [LabelCount('meeting', 55), LabelCount('delivery', 22), LabelCount('vendor', 21)],
-        byMethod: const [LabelCount('qr', 43), LabelCount('manual', 78), LabelCount('rfid', 29)],
-        byDepartment: const [LabelCount('Accounts & Finance', 26), LabelCount('Information Technology (IT)', 21)],
-      ));
+  Future<Result<DashboardCharts>> getCharts({required int days}) async => Success(
+    DashboardCharts(
+      daily: [for (var i = 0; i < days; i++) DailyCount(DateTime(2026, 10, 1 + i), i % 9)],
+      byType: const [LabelCount('meeting', 55), LabelCount('delivery', 22), LabelCount('vendor', 21)],
+      byMethod: const [LabelCount('qr', 43), LabelCount('manual', 78), LabelCount('rfid', 29)],
+      byDepartment: const [LabelCount('Accounts & Finance', 26), LabelCount('Information Technology (IT)', 21)],
+    ),
+  );
 }
 
 void main() {
@@ -84,14 +88,16 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
-    await tester.pumpWidget(ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        authProvider.overrideWith(_FakeAuth.new),
-        dashboardRepositoryProvider.overrideWithValue(_FakeRepo()),
-      ],
-      child: const VmsApp(),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          authProvider.overrideWith(_FakeAuth.new),
+          dashboardRepositoryProvider.overrideWithValue(_FakeRepo()),
+        ],
+        child: const VmsApp(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome, Abdul Karim (Front Desk)'), findsOneWidget);
@@ -102,11 +108,7 @@ void main() {
     await tester.tap(find.text('30'));
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.text('Rezaul Karim'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.scrollUntilVisible(find.text('Rezaul Karim'), 300, scrollable: find.byType(Scrollable).first);
     expect(find.text('Abul Kalam Azad'), findsOneWidget);
 
     // Drawer shows only permitted items: no Setup for a receptionist.

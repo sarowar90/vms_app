@@ -15,30 +15,34 @@ class AppDrawer extends ConsumerWidget {
     if (user == null) return const Drawer();
 
     final current = GoRouterState.of(context).matchedLocation;
-    final items = (user.isSuperAdmin ? superAdminNav : companyNav)
-        .where((i) => user.canAny(i.permissions))
-        .toList();
+    final items = (user.isSuperAdmin ? superAdminNav : companyNav).where((i) => user.canAny(i.permissions)).toList();
     final theme = Theme.of(context);
 
     final tiles = <Widget>[];
     String? group;
     for (final item in items) {
       if (item.group != group && item.group != null) {
-        tiles.add(Padding(
-          padding: const EdgeInsets.fromLTRB(28, 16, 16, 6),
-          child: Text(item.group!.toUpperCase(),
-              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
-        ));
+        tiles.add(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(28, 16, 16, 6),
+            child: Text(
+              item.group!.toUpperCase(),
+              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline),
+            ),
+          ),
+        );
       }
       group = item.group;
-      tiles.add(NavigationDrawerDestinationTile(
-        item: item,
-        selected: item.route == current,
-        onTap: () {
-          Navigator.of(context).pop();
-          if (item.route != current) context.go(item.route);
-        },
-      ));
+      tiles.add(
+        NavigationDrawerDestinationTile(
+          item: item,
+          selected: item.route == current,
+          onTap: () {
+            Navigator.of(context).pop();
+            if (item.route != current) context.go(item.route);
+          },
+        ),
+      );
     }
 
     return Drawer(
@@ -46,16 +50,18 @@ class AppDrawer extends ConsumerWidget {
         children: [
           UserAccountsDrawerHeader(
             accountName: Text(user.name),
-            accountEmail: Text(
-              [user.roleName, user.company?.name ?? 'Platform'].join(' · '),
-            ),
+            accountEmail: Text([user.roleName, user.company?.name ?? 'Platform'].join(' · ')),
             currentAccountPicture: CircleAvatar(
               backgroundColor: theme.colorScheme.onPrimary,
-              child: Text(user.name.isEmpty ? '?' : user.name[0].toUpperCase(),
-                  style: TextStyle(fontSize: 24, color: theme.colorScheme.primary)),
+              child: Text(
+                user.name.isEmpty ? '?' : user.name[0].toUpperCase(),
+                style: TextStyle(fontSize: 24, color: theme.colorScheme.primary),
+              ),
             ),
           ),
-          Expanded(child: ListView(padding: EdgeInsets.zero, children: tiles)),
+          Expanded(
+            child: ListView(padding: EdgeInsets.zero, children: tiles),
+          ),
           const Divider(height: 1),
           ListTile(
             leading: Icon(Icons.logout, color: theme.colorScheme.error),
@@ -73,12 +79,7 @@ class AppDrawer extends ConsumerWidget {
 }
 
 class NavigationDrawerDestinationTile extends StatelessWidget {
-  const NavigationDrawerDestinationTile({
-    super.key,
-    required this.item,
-    required this.selected,
-    required this.onTap,
-  });
+  const NavigationDrawerDestinationTile({super.key, required this.item, required this.selected, required this.onTap});
 
   final NavItem item;
   final bool selected;

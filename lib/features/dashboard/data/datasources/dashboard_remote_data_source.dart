@@ -21,18 +21,15 @@ class DashboardRemoteDataSource {
       todayPersons: n('today_persons'),
       monthVisits: n('month_visits'),
       totalVisitors: n('total_visitors'),
-      recent: [
-        for (final v in d['recent'] as List? ?? const []) VisitModel.fromJson(v as Map<String, dynamic>),
-      ],
+      recent: [for (final v in d['recent'] as List? ?? const []) VisitModel.fromJson(v as Map<String, dynamic>)],
     );
   }
 
   Future<DashboardCharts> charts(int days) async {
     final d = await _api.get('dashboard/charts', query: {'days': days}) as Map<String, dynamic>;
     List<LabelCount> counts(String key) => [
-          for (final r in d[key] as List? ?? const [])
-            LabelCount(r['label']?.toString() ?? '', parseInt(r['count']) ?? 0),
-        ];
+      for (final r in d[key] as List? ?? const []) LabelCount(r['label']?.toString() ?? '', parseInt(r['count']) ?? 0),
+    ];
     return DashboardCharts(
       daily: [
         for (final r in d['daily'] as List? ?? const [])

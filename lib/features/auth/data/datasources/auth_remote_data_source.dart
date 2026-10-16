@@ -14,10 +14,8 @@ class AuthRemoteDataSource {
   final ApiClient _api;
 
   Future<LoginResponse> login(String username, String password) async {
-    final data = await _api.post(
-      'auth/login',
-      data: {'username': username, 'password': password},
-    ) as Map<String, dynamic>;
+    final data =
+        await _api.post('auth/login', data: {'username': username, 'password': password}) as Map<String, dynamic>;
     return LoginResponse(
       token: data['token'] as String,
       user: UserModel.fromJson(data['user'] as Map<String, dynamic>),

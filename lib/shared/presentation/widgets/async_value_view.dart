@@ -28,11 +28,7 @@ class AsyncValueView<T> extends StatelessWidget {
               Text(error.toString(), textAlign: .center),
               if (onRetry != null) ...[
                 const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: onRetry,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                ),
+                OutlinedButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: const Text('Retry')),
               ],
             ],
           ),

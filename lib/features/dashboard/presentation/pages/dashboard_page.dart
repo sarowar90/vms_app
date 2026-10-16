@@ -35,8 +35,10 @@ class DashboardPage extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text('Welcome, ${user?.name ?? ''}', style: theme.textTheme.titleLarge),
-            Text("Today's visitor activity at a glance",
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline)),
+            Text(
+              "Today's visitor activity at a glance",
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+            ),
             const SizedBox(height: 12),
             Row(
               spacing: 8,
@@ -52,7 +54,7 @@ class DashboardPage extends ConsumerWidget {
                 if (user?.can('visits.preregister') ?? false)
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => context.go(AppRoutes.preregister),
+                      onPressed: () => context.go('${AppRoutes.preregister}?new=1'),
                       icon: const Icon(Icons.event_available),
                       label: const Text('Pre-register'),
                     ),

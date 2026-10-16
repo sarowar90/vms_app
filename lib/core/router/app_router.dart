@@ -2,17 +2,61 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/blacklist/domain/blacklist_repository.dart';
+import '../../features/blacklist/presentation/pages/blacklist_page.dart';
+import '../../features/inside/presentation/pages/inside_page.dart';
+import '../../features/masters/presentation/pages/master_pages.dart';
+import '../../features/masters/presentation/pages/roles_pages.dart';
+import '../../features/settings/presentation/settings_page.dart';
+import '../../features/reports/presentation/pages/report_page.dart';
+import '../../features/visitors/presentation/pages/visitors_page.dart';
+import '../../features/visits/presentation/pages/all_visits_page.dart';
+import '../../shared/domain/entities/visit.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../../features/checkin/presentation/pages/checkin_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/preregister/presentation/pages/preregister_page.dart';
 import '../../features/shell/presentation/pages/coming_soon_page.dart';
 import 'app_routes.dart';
 
 export 'app_routes.dart';
 
 /// Pages that are built. Every other menu item shows [ComingSoonPage].
-final Map<String, WidgetBuilder> _pages = {
+final Map<String, Widget Function(GoRouterState state)> _pages = {
   AppRoutes.dashboard: (_) => const DashboardPage(),
+  // /checkin?visit=ID opens the Pre-registered tab with that visit.
+  AppRoutes.checkin: (s) =>
+      CheckinPage(key: ValueKey(s.uri.query), visitId: int.tryParse(s.uri.queryParameters['visit'] ?? '')),
+  // /preregister?new=1 opens the new pre-registration form.
+  AppRoutes.preregister: (s) => PreregisterPage(openNew: s.uri.queryParameters['new'] == '1'),
+  // /visits?status=pending pre-selects a status chip.
+  AppRoutes.visits: (s) => AllVisitsPage(
+    key: ValueKey(s.uri.query),
+    initialStatus: switch (s.uri.queryParameters['status']) {
+      final v? => VisitStatus.fromValue(v),
+      null => null,
+    },
+  ),
+  AppRoutes.active: (_) => const InsidePage(),
+  AppRoutes.reports: (_) => const ReportPage(),
+  AppRoutes.branches: (_) => const BranchesPage(),
+  AppRoutes.departments: (_) => const DepartmentsPage(),
+  AppRoutes.employees: (_) => const EmployeesPage(),
+  AppRoutes.users: (_) => const UsersPage(),
+  AppRoutes.roles: (_) => const RolesPage(),
+  AppRoutes.settings: (_) => const SettingsPage(),
+  AppRoutes.visitors: (_) => const VisitorsPage(),
+  // /blacklist?phone=&name=&id_number= opens the add form pre-filled (from a visitor profile).
+  AppRoutes.blacklist: (s) {
+    final q = s.uri.queryParameters;
+    return BlacklistPage(
+      key: ValueKey(s.uri.query),
+      prefill: q['phone'] == null && q['id_number'] == null
+          ? null
+          : BlacklistInput(name: q['name'], phone: q['phone'], idNumber: q['id_number'], reason: ''),
+    );
+  },
 };
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -50,8 +94,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       for (final item in [...superAdminNav, ...companyNav])
         GoRoute(
           path: item.route,
-          builder: (context, _) =>
-              _pages[item.route]?.call(context) ?? ComingSoonPage(title: item.label),
+          builder: (_, state) => _pages[item.route]?.call(state) ?? ComingSoonPage(title: item.label),
         ),
     ],
   );

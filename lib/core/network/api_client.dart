@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -70,35 +72,77 @@ class ApiClient {
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
       _send(() => _dio.get(path, queryParameters: query));
 
+  /// For paginated endpoints: returns `data` (a list) and `meta`
+  /// (`total`, `page`, `per_page`, `last_page`).
+  Future<(List<dynamic>, Map<String, dynamic>)> getPaged(String path, {Map<String, dynamic>? query}) async {
+    Map<String, dynamic> meta = const {};
+    final data = await _send(
+      () => _dio.get(path, queryParameters: query),
+      onBody: (body) => meta = (body['meta'] as Map<String, dynamic>?) ?? const {},
+    );
+    return ((data as List?) ?? const [], meta);
+  }
+
+  /// A file download. Returns the bytes and the server's file name
+  /// (from `Content-Disposition`), if any.
+  Future<(Uint8List, String?)> download(String path, {Map<String, dynamic>? query}) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        path,
+        queryParameters: query,
+        options: Options(responseType: ResponseType.bytes, receiveTimeout: const Duration(minutes: 2)),
+      );
+      final disposition = response.headers.value('content-disposition') ?? '';
+      final name = RegExp(r'filename="?([^";]+)"?').firstMatch(disposition)?.group(1);
+      return (Uint8List.fromList(response.data ?? const []), name);
+    } on DioException catch (e) {
+      throw _fromDio(e);
+    }
+  }
+
   Future<dynamic> post(String path, {Object? data}) => _send(() => _dio.post(path, data: data));
 
   Future<dynamic> put(String path, {Object? data}) => _send(() => _dio.put(path, data: data));
 
   Future<dynamic> delete(String path) => _send(() => _dio.delete(path));
 
-  Future<dynamic> _send(Future<Response<dynamic>> Function() request) async {
+  Future<dynamic> _send(
+    Future<Response<dynamic>> Function() request, {
+    void Function(Map<String, dynamic> body)? onBody,
+  }) async {
     try {
       final response = await request();
       final body = response.data;
       if (body is Map<String, dynamic>) {
         if (body['success'] == false) throw _toServerException(body, response.statusCode);
+        onBody?.call(body);
         return body['data'];
       }
       return body;
     } on DioException catch (e) {
-      switch (e.type) {
-        case DioExceptionType.connectionError:
-        case DioExceptionType.connectionTimeout:
-        case DioExceptionType.receiveTimeout:
-        case DioExceptionType.sendTimeout:
-          throw const NetworkException();
-        default:
-          final body = e.response?.data;
-          if (body is Map<String, dynamic>) {
-            throw _toServerException(body, e.response?.statusCode);
+      throw _fromDio(e);
+    }
+  }
+
+  Exception _fromDio(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionError:
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.sendTimeout:
+        return const NetworkException();
+      default:
+        var body = e.response?.data;
+        // Downloads receive bytes; errors are still JSON.
+        if (body is List<int>) {
+          try {
+            body = jsonDecode(utf8.decode(body));
+          } on FormatException {
+            body = null;
           }
-          throw ServerException(e.message ?? 'Unexpected error', statusCode: e.response?.statusCode);
-      }
+        }
+        if (body is Map<String, dynamic>) return _toServerException(body, e.response?.statusCode);
+        return ServerException(e.message ?? 'Unexpected error', statusCode: e.response?.statusCode);
     }
   }
 
@@ -109,10 +153,7 @@ class ApiClient {
       statusCode: statusCode,
       errors: rawErrors is Map
           ? rawErrors.map(
-              (k, v) => MapEntry(
-                k.toString(),
-                v is List ? v.map((e) => e.toString()).toList() : [v.toString()],
-              ),
+              (k, v) => MapEntry(k.toString(), v is List ? v.map((e) => e.toString()).toList() : [v.toString()]),
             )
           : null,
     );

@@ -40,6 +40,11 @@ dependencies:
   go_router: ^18.1.0
   fl_chart: ^1.2.0
   intl: ^0.20.2
+  mobile_scanner: ^7.4.2
+  image_picker: ^1.2.4
+  qr_flutter: ^4.1.0
+  share_plus: ^13.3.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

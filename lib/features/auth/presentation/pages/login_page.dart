@@ -27,10 +27,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
-    ref.read(loginControllerProvider.notifier).submit(
-          username: _username.text,
-          password: _password.text,
-        );
+    ref.read(loginControllerProvider.notifier).submit(username: _username.text, password: _password.text);
   }
 
   @override
@@ -51,11 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 children: [
                   Icon(Icons.badge_outlined, size: 64, color: theme.colorScheme.primary),
                   const SizedBox(height: 12),
-                  Text(
-                    '${AppConfig.appName} Login',
-                    textAlign: .center,
-                    style: theme.textTheme.headlineSmall,
-                  ),
+                  Text('${AppConfig.appName} Login', textAlign: .center, style: theme.textTheme.headlineSmall),
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _username,
@@ -98,10 +91,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     onPressed: login.isLoading ? null : _submit,
                     style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                     child: login.isLoading
-                        ? const SizedBox.square(
-                            dimension: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                        ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Text('Login'),
                   ),
                 ],

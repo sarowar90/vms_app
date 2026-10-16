@@ -10,8 +10,16 @@ import '../providers/dashboard_providers.dart';
 import 'chart_card.dart';
 
 const _palette = [
-  Color(0xFF006A4E), Color(0xFF1D5FC1), Color(0xFFF4A300), Color(0xFFF42A41), Color(0xFF0B7D93),
-  Color(0xFF7B4BC4), Color(0xFF6C757D), Color(0xFF2E9E6A), Color(0xFFD66B00), Color(0xFF9AA5A1),
+  Color(0xFF006A4E),
+  Color(0xFF1D5FC1),
+  Color(0xFFF4A300),
+  Color(0xFFF42A41),
+  Color(0xFF0B7D93),
+  Color(0xFF7B4BC4),
+  Color(0xFF6C757D),
+  Color(0xFF2E9E6A),
+  Color(0xFFD66B00),
+  Color(0xFF9AA5A1),
 ];
 
 /// The four chart cards of the web dashboard, stacked for mobile.
@@ -42,16 +50,8 @@ class DashboardChartsView extends ConsumerWidget {
             child: _DailyChart(c.daily),
           ),
           ChartCard(title: 'By Visit Type', subtitle: 'last 30 days', child: _TypeChart(c.byType)),
-          ChartCard(
-            title: 'By Department',
-            subtitle: 'last 30 days',
-            child: _DepartmentBars(c.byDepartment),
-          ),
-          ChartCard(
-            title: 'By Check-in Method',
-            subtitle: 'last 30 days',
-            child: _MethodBreakdown(c.byMethod),
-          ),
+          ChartCard(title: 'By Department', subtitle: 'last 30 days', child: _DepartmentBars(c.byDepartment)),
+          ChartCard(title: 'By Check-in Method', subtitle: 'last 30 days', child: _MethodBreakdown(c.byMethod)),
         ],
       ),
     );
@@ -91,7 +91,10 @@ class _DailyChart extends StatelessWidget {
                 showTitles: true,
                 reservedSize: 28,
                 getTitlesWidget: (value, meta) => value % 1 == 0
-                    ? SideTitleWidget(meta: meta, child: Text(value.toInt().toString(), style: small))
+                    ? SideTitleWidget(
+                        meta: meta,
+                        child: Text(value.toInt().toString(), style: small),
+                      )
                     : const SizedBox.shrink(),
               ),
             ),
@@ -101,21 +104,27 @@ class _DailyChart extends StatelessWidget {
                 getTitlesWidget: (value, meta) {
                   final i = value.toInt();
                   if (i % labelEvery != 0 || i >= daily.length) return const SizedBox.shrink();
-                  return SideTitleWidget(meta: meta, child: Text(fmtDayMonth(daily[i].date), style: small));
+                  return SideTitleWidget(
+                    meta: meta,
+                    child: Text(fmtDayMonth(daily[i].date), style: small),
+                  );
                 },
               ),
             ),
           ),
           barGroups: [
             for (var i = 0; i < daily.length; i++)
-              BarChartGroupData(x: i, barRods: [
-                BarChartRodData(
-                  toY: daily[i].count.toDouble(),
-                  color: color,
-                  width: daily.length > 15 ? 6 : 16,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ]),
+              BarChartGroupData(
+                x: i,
+                barRods: [
+                  BarChartRodData(
+                    toY: daily[i].count.toDouble(),
+                    color: color,
+                    width: daily.length > 15 ? 6 : 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -220,7 +229,14 @@ class _MethodBreakdown extends StatelessWidget {
                   centerSpaceRadius: 40,
                   sectionsSpace: total == 0 ? 0 : 2,
                   sections: total == 0
-                      ? [PieChartSectionData(value: 1, color: theme.colorScheme.surfaceContainerHighest, radius: 14, showTitle: false)]
+                      ? [
+                          PieChartSectionData(
+                            value: 1,
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            radius: 14,
+                            showTitle: false,
+                          ),
+                        ]
                       : [
                           for (final (m, n) in items)
                             PieChartSectionData(value: n.toDouble(), color: m.color, radius: 14, showTitle: false),
@@ -259,13 +275,7 @@ class _MethodBreakdown extends StatelessWidget {
 }
 
 class _BarRow extends StatelessWidget {
-  const _BarRow({
-    required this.label,
-    required this.trailing,
-    required this.fraction,
-    required this.color,
-    this.icon,
-  });
+  const _BarRow({required this.label, required this.trailing, required this.fraction, required this.color, this.icon});
 
   final String label;
   final String trailing;
@@ -283,7 +293,9 @@ class _BarRow extends StatelessWidget {
         Row(
           children: [
             if (icon != null) ...[Icon(icon, size: 16, color: color), const SizedBox(width: 6)],
-            Expanded(child: Text(label, style: text.bodySmall, overflow: .ellipsis)),
+            Expanded(
+              child: Text(label, style: text.bodySmall, overflow: .ellipsis),
+            ),
             Text(trailing, style: text.labelMedium),
           ],
         ),
@@ -312,7 +324,11 @@ class _Legend extends StatelessWidget {
     return Row(
       mainAxisSize: .min,
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 6),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
@@ -325,7 +341,7 @@ class _NoData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: Text('No data')),
-      );
+    padding: EdgeInsets.all(24),
+    child: Center(child: Text('No data')),
+  );
 }

@@ -16,10 +16,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-        child: const VmsApp(),
-      ),
+      ProviderScope(overrides: [sharedPreferencesProvider.overrideWithValue(prefs)], child: const VmsApp()),
     );
     await tester.pumpAndSettle();
 
@@ -40,17 +37,19 @@ void main() {
 
 class _FakeDashboardRepository implements DashboardRepository {
   @override
-  Future<Result<DashboardStats>> getStats() async => const Success(DashboardStats(
-        todayCheckins: 4,
-        insideNow: 3,
-        todayCheckouts: 1,
-        pendingApprovals: 2,
-        expectedToday: 2,
-        todayPersons: 5,
-        monthVisits: 70,
-        totalVisitors: 25,
-        recent: [],
-      ));
+  Future<Result<DashboardStats>> getStats() async => const Success(
+    DashboardStats(
+      todayCheckins: 4,
+      insideNow: 3,
+      todayCheckouts: 1,
+      pendingApprovals: 2,
+      expectedToday: 2,
+      todayPersons: 5,
+      monthVisits: 70,
+      totalVisitors: 25,
+      recent: [],
+    ),
+  );
 
   @override
   Future<Result<DashboardCharts>> getCharts({required int days}) async =>

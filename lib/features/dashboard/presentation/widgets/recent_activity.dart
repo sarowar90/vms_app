@@ -31,12 +31,12 @@ class RecentActivity extends StatelessWidget {
             ),
           ),
           if (visits.isEmpty)
-            const Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No records found')))
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: Text('No records found')),
+            )
           else
-            for (final v in visits) ...[
-              const Divider(height: 1),
-              _VisitTile(v),
-            ],
+            for (final v in visits) ...[const Divider(height: 1), _VisitTile(v)],
         ],
       ),
     );
@@ -71,18 +71,18 @@ class _VisitTile extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(v.visitorName,
-                          style: const TextStyle(fontWeight: .w600), overflow: .ellipsis),
+                      child: Text(
+                        v.visitorName,
+                        style: const TextStyle(fontWeight: .w600),
+                        overflow: .ellipsis,
+                      ),
                     ),
                     StatusChip(v.status),
                   ],
                 ),
                 if (v.visitorCompany != null) Text(v.visitorCompany!, style: muted),
                 Text(
-                  [
-                    'Host: ${v.hostName}',
-                    if (v.visitType != null) v.visitType!.label,
-                  ].join('  ·  '),
+                  ['Host: ${v.hostName}', if (v.visitType != null) v.visitType!.label].join('  ·  '),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 Text(timeLine, style: muted),
