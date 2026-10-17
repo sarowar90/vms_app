@@ -48,15 +48,40 @@ class AppDrawer extends ConsumerWidget {
     return Drawer(
       child: Column(
         children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(user.name),
-            accountEmail: Text([user.roleName, user.company?.name ?? 'Platform'].join(' · ')),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: theme.colorScheme.onPrimary,
-              child: Text(
-                user.name.isEmpty ? '?' : user.name[0].toUpperCase(),
-                style: TextStyle(fontSize: 24, color: theme.colorScheme.primary),
-              ),
+          // Name, @username, then role · company.
+          Container(
+            width: double.infinity,
+            color: theme.colorScheme.primary,
+            padding: EdgeInsets.fromLTRB(20, MediaQuery.paddingOf(context).top + 20, 16, 18),
+            child: Column(
+              crossAxisAlignment: .start,
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: theme.colorScheme.onPrimary,
+                  child: Text(
+                    user.name.isEmpty ? '?' : user.name[0].toUpperCase(),
+                    style: TextStyle(fontSize: 26, color: theme.colorScheme.primary),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  user.name,
+                  style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: .w700),
+                  overflow: .ellipsis,
+                ),
+                Text(
+                  '@${user.username}',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 14),
+                  overflow: .ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  [user.roleName, user.company?.name ?? 'Platform'].join(' · '),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
+                  overflow: .ellipsis,
+                ),
+              ],
             ),
           ),
           Expanded(

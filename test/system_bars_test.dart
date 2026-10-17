@@ -59,6 +59,9 @@ void main() {
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
 
+    // Header shows the username under the name.
+    expect(find.text('@admin'), findsOneWidget);
+
     final logout = tester.getRect(find.text('Logout'));
     expect(logout.bottom, lessThanOrEqualTo(780 - navBar), reason: 'Logout is hidden behind the navigation bar');
 
