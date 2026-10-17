@@ -9,7 +9,10 @@ import '../../../../core/utils/result.dart';
 import '../../../../shared/domain/entities/visit.dart';
 import '../../../../shared/presentation/formatters.dart';
 import '../../../../shared/presentation/widgets/async_value_view.dart';
+import '../../../../shared/data/json_utils.dart';
 import '../../../../shared/presentation/widgets/status_chip.dart';
+import '../../../../shared/presentation/widgets/visitor_avatar.dart';
+import '../../../visits/presentation/widgets/visit_tile.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../shell/presentation/widgets/app_drawer.dart';
 import '../../../visits/presentation/providers/visit_providers.dart';
@@ -110,22 +113,59 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           ],
         ),
         drawer: const AppDrawer(),
-        body: const Column(
-          children: [
-            _FilterBar(),
-            _Totals(),
-            TabBar(
-              tabs: [
-                Tab(icon: Icon(Icons.table_rows_outlined), text: 'Detailed'),
-                Tab(icon: Icon(Icons.pie_chart_outline), text: 'Summary'),
-              ],
-            ),
-            Expanded(child: TabBarView(children: [_DetailedTab(), _SummaryTab()])),
+        // Dates and totals scroll away with the results; the tabs stay pinned.
+        body: NestedScrollView(
+          headerSliverBuilder: (context, _) => [
+            const SliverToBoxAdapter(child: _FilterBar()),
+            const SliverToBoxAdapter(child: _Totals()),
+            SliverPersistentHeader(pinned: true, delegate: _PinnedTabs(Theme.of(context).colorScheme.surface)),
           ],
+          body: const TabBarView(children: [_DetailedTab(), _SummaryTab()]),
         ),
       ),
     );
   }
+}
+
+/// Detailed / Summary tabs, pinned under the app bar while results scroll.
+class _PinnedTabs extends SliverPersistentHeaderDelegate {
+  _PinnedTabs(this.background);
+
+  final Color background;
+
+  static const _tabBar = TabBar(
+    tabs: [
+      Tab(
+        height: 48,
+        child: Row(
+          mainAxisSize: .min,
+          spacing: 6,
+          children: [Icon(Icons.view_agenda_outlined, size: 18), Text('Detailed')],
+        ),
+      ),
+      Tab(
+        height: 48,
+        child: Row(
+          mainAxisSize: .min,
+          spacing: 6,
+          children: [Icon(Icons.pie_chart_outline, size: 18), Text('Summary')],
+        ),
+      ),
+    ],
+  );
+
+  @override
+  double get minExtent => 48;
+
+  @override
+  double get maxExtent => 48;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      Material(color: background, elevation: overlapsContent ? 2 : 0, child: _tabBar);
+
+  @override
+  bool shouldRebuild(_PinnedTabs old) => old.background != background;
 }
 
 /// Date range shortcuts + the current range + Filters button.
@@ -192,20 +232,27 @@ class _Totals extends ConsumerWidget {
       ('Inside Now', t?.inside, Icons.meeting_room_outlined, const Color(0xFF0B7D93)),
       ('With Goods', t?.withGoods, Icons.inventory_2_outlined, const Color(0xFFF4A300)),
     ];
+    // Small tinted tiles: number first, label under it.
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
+        spacing: 8,
         children: [
           for (final (label, value, icon, color) in items)
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(4),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
                 child: Column(
+                  spacing: 2,
                   children: [
-                    Icon(icon, color: color, size: 20),
-                    Text(
-                      value == null ? '–' : fmtNumber(value),
-                      style: const TextStyle(fontWeight: .w700, fontSize: 16),
+                    Icon(icon, color: color, size: 18),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        value == null ? '–' : fmtNumber(value),
+                        style: TextStyle(fontWeight: .w800, fontSize: 18, color: color),
+                      ),
                     ),
                     Text(
                       label,
@@ -313,8 +360,31 @@ class _DetailedTab extends ConsumerWidget {
   }
 }
 
-/// One report row as a card: chosen columns as label/value pairs (a table does not fit a phone).
-class _RowCard extends ConsumerWidget {
+/// Columns the compact card shows in its header / icon lines; any other chosen
+/// column goes under "More details".
+const _cardColumns = {
+  'visitor_name',
+  'status',
+  'visitor_designation',
+  'visitor_company',
+  'purpose',
+  'visit_no',
+  'check_in_at',
+  'check_out_at',
+  'duration',
+  'host_name',
+  'department_name',
+  'visit_type',
+  'persons_count',
+  'checkin_method',
+  'carrying_goods',
+  'visitor_phone',
+};
+
+/// One report row as a compact card (a wide table does not fit a phone):
+/// name + status, the key facts as icon lines, the rest behind "More details".
+/// Only columns chosen in the column chooser are shown.
+class _RowCard extends ConsumerStatefulWidget {
   const _RowCard({required this.row, required this.columns, required this.labels});
 
   final ReportRow row;
@@ -322,63 +392,175 @@ class _RowCard extends ConsumerWidget {
   final Map<String, String> labels;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_RowCard> createState() => _RowCardState();
+}
+
+class _RowCardState extends ConsumerState<_RowCard> {
+  bool _expanded = false;
+
+  Future<void> _openVisit() async {
+    final result = await ref.read(getVisitProvider)(widget.row.id);
+    if (!mounted) return;
+    switch (result) {
+      case Success(:final value):
+        showVisitActionsSheet(context, value);
+      case Error(:final failure):
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.message)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final v = row.values;
-    final title = v['visitor_name'] ?? v['visit_no'] ?? '#${row.id}';
-    final status = v['status'] == null ? null : VisitStatus.fromValue(v['status']);
-    final shown = columns.where((c) => c != 'visitor_name' && c != 'status' && (v[c] ?? '').isNotEmpty);
+    final v = widget.row.values;
+    final chosen = widget.columns.toSet();
+    // A chosen column with a value.
+    String? get(String key) => chosen.contains(key) && (v[key] ?? '').isNotEmpty ? v[key] : null;
+    String? shown(String key) => get(key) == null ? null : formatReportCell(key, v[key]);
+
+    final name = get('visitor_name') ?? get('visit_no') ?? '#${widget.row.id}';
+    final status = get('status') == null ? null : VisitStatus.fromValue(v['status']);
+    final subtitle = [?get('visitor_designation'), ?get('visitor_company')].join(' · ');
+    final type = VisitType.fromValue(get('visit_type'));
+    final method = CheckinMethod.fromValue(get('checkin_method'));
+    final inAt = get('check_in_at') == null ? null : parseDateTime(v['check_in_at']);
+    final outAt = get('check_out_at') == null ? null : parseDateTime(v['check_out_at']);
+
+    final timeLine = switch ((inAt, outAt)) {
+      (final i?, final o?) => '${fmtDate(i)}  ${fmtTime(i)} → ${fmtTime(o)}',
+      (final i?, null) => '${fmtDate(i)}  ${fmtTime(i)} → ${status == VisitStatus.checkedIn ? 'inside' : '–'}',
+      (null, final o?) => 'Out ${fmtDateTime(o)}',
+      _ => null,
+    };
+    final host = [?get('host_name'), ?get('department_name')].join(' · ');
+    final persons = int.tryParse(get('persons_count') ?? '');
+
+    final more = [
+      for (final c in widget.columns)
+        if (!_cardColumns.contains(c) && (v[c] ?? '').isNotEmpty) (widget.labels[c] ?? c, formatReportCell(c, v[c])),
+    ];
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 10),
+      elevation: 1,
+      color: theme.colorScheme.surfaceContainerLowest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () async {
-          final result = await ref.read(getVisitProvider)(row.id);
-          if (!context.mounted) return;
-          switch (result) {
-            case Success(:final value):
-              showVisitActionsSheet(context, value);
-            case Error(:final failure):
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.message)));
-          }
-        },
+        onTap: _openVisit,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
           child: Column(
             crossAxisAlignment: .stretch,
-            spacing: 3,
             children: [
               Row(
                 children: [
+                  VisitorAvatar(name: name, radius: 20),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(fontWeight: .w600),
-                      overflow: .ellipsis,
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(fontWeight: .w700, fontSize: 15),
+                          overflow: .ellipsis,
+                        ),
+                        if (subtitle.isNotEmpty)
+                          Text(
+                            subtitle,
+                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
+                            overflow: .ellipsis,
+                          ),
+                      ],
                     ),
                   ),
                   ?(status == null ? null : StatusChip(status)),
                 ],
               ),
-              for (final c in shown)
-                Row(
-                  crossAxisAlignment: .start,
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      child: Text(
-                        labels[c] ?? c,
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
-                      ),
-                    ),
-                    Expanded(child: Text(formatReportCell(c, v[c]), style: theme.textTheme.bodySmall)),
-                  ],
+              if (get('purpose') case final p?) ...[
+                const SizedBox(height: 8),
+                Text(p, style: theme.textTheme.bodyMedium),
+              ],
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                runSpacing: 6,
+                children: [
+                  if (timeLine != null) _ReportMeta(Icons.schedule, timeLine),
+                  if (shown('duration') case final d?) _ReportMeta(Icons.hourglass_bottom, d),
+                  if (host.isNotEmpty) _ReportMeta(Icons.person_outline, host),
+                  if (type != null) _ReportMeta(visitTypeIcons[type] ?? Icons.category_outlined, type.label),
+                  if (persons != null)
+                    _ReportMeta(Icons.groups_outlined, '$persons ${persons == 1 ? 'person' : 'persons'}'),
+                  if (method != null) _ReportMeta(method.icon, method.label),
+                  if (get('carrying_goods') case final g?) _ReportMeta(Icons.inventory_2_outlined, g),
+                  if (get('visitor_phone') case final ph?) _ReportMeta(Icons.phone_outlined, ph),
+                  if (get('visit_no') case final no? when name != no) _ReportMeta(Icons.tag, no),
+                ],
+              ),
+              if (more.isEmpty)
+                const SizedBox(height: 8)
+              else ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(visualDensity: VisualDensity.compact, padding: EdgeInsets.zero),
+                    onPressed: () => setState(() => _expanded = !_expanded),
+                    icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 18),
+                    label: Text(_expanded ? 'Less' : 'More details (${more.length})'),
+                  ),
                 ),
+                if (_expanded)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      spacing: 4,
+                      children: [
+                        for (final (label, value) in more)
+                          Row(
+                            crossAxisAlignment: .start,
+                            children: [
+                              SizedBox(
+                                width: 120,
+                                child: Text(
+                                  label,
+                                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
+                                ),
+                              ),
+                              Expanded(child: Text(value, style: theme.textTheme.bodySmall)),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ReportMeta extends StatelessWidget {
+  const _ReportMeta(this.icon, this.text);
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Row(
+      mainAxisSize: .min,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(text, style: TextStyle(fontSize: 12, color: color)),
+        ),
+      ],
     );
   }
 }
