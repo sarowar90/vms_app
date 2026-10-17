@@ -1,11 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/error/failures.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/result.dart';
@@ -197,7 +195,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 icon: _saving
                     ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.check),
-                label: const Text('Save'),
+                label: const Text('Submit'),
               ),
             ],
           ),
@@ -230,33 +228,6 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 label: const Text('Upload'),
               ),
               Text('PNG/JPG, max 2 MB', textAlign: .center, style: theme.textTheme.bodySmall),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _Section(
-            icon: Icons.power_outlined,
-            title: 'REST API',
-            children: [
-              Text('API Base URL', style: theme.textTheme.bodySmall),
-              Row(
-                children: [
-                  Expanded(
-                    child: SelectableText(AppConfig.apiBaseUrl, style: const TextStyle(fontFamily: 'monospace')),
-                  ),
-                  IconButton(
-                    tooltip: 'Copy',
-                    icon: const Icon(Icons.copy, size: 18),
-                    onPressed: () {
-                      Clipboard.setData(const ClipboardData(text: AppConfig.apiBaseUrl));
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied')));
-                    },
-                  ),
-                ],
-              ),
-              Text(
-                'Login with POST auth/login and send the token as "Authorization: Bearer <token>".',
-                style: theme.textTheme.bodySmall,
-              ),
             ],
           ),
           const SizedBox(height: 24),
