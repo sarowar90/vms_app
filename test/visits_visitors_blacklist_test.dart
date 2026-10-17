@@ -216,7 +216,8 @@ void main() {
     await tester.tap(find.text('Md. Arifur Rahman'));
     await tester.pumpAndSettle();
     expect(find.text('BLACKLISTED'), findsOneWidget);
-    expect(find.text('1h 30m'), findsOneWidget); // average duration
+    // Average stay (stats card) + that visit's own duration (timeline).
+    expect(find.text('1h 30m'), findsNWidgets(2));
     expect(find.textContaining('V-7'), findsOneWidget);
   });
 
@@ -226,7 +227,7 @@ void main() {
     // Opened with the add form pre-filled.
     expect(find.text('Add to Blacklist'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Reason *'), 'Fake documents');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Submit'));
     await tester.pumpAndSettle();
 
     expect(fakes.blacklist.saved.single.phone, '01711223344');

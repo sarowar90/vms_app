@@ -292,7 +292,7 @@ class _RoleEditorPageState extends ConsumerState<RoleEditorPage> {
                     padding: EdgeInsets.all(14),
                     child: SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                   )
-                : TextButton(onPressed: _save, child: const Text('Save')),
+                : TextButton(onPressed: _save, child: const Text('Submit')),
         ],
       ),
       body: Form(
@@ -302,6 +302,8 @@ class _RoleEditorPageState extends ConsumerState<RoleEditorPage> {
           children: [
             if (_locked)
               Card(
+                // Room below so the banner does not touch the first field's label.
+                margin: const EdgeInsets.only(bottom: 20),
                 color: const Color(0xFFF4A300).withValues(alpha: 0.15),
                 child: const ListTile(
                   leading: Icon(Icons.lock_outline),

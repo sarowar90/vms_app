@@ -302,7 +302,7 @@ class _BlacklistFormState extends ConsumerState<_BlacklistForm> {
                 onPressed: state.isLoading ? null : _save,
                 child: state.isLoading
                     ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Save'),
+                    : const Text('Submit'),
               ),
             ],
           ),

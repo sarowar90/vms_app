@@ -186,7 +186,7 @@ class _SavedReportsSheetState extends ConsumerState<SavedReportsSheet> {
                   _name.clear();
                   messenger.showSnackBar(const SnackBar(content: Text('Report layout saved')));
                 },
-                child: const Text('Save'),
+                child: const Text('Submit'),
               ),
             ],
           ),

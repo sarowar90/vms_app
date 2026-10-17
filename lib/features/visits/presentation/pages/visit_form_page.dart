@@ -212,7 +212,7 @@ class _VisitFormPageState extends ConsumerState<VisitFormPage> {
               icon: submit.isLoading
                   ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.check),
-              label: const Text('Save'),
+              label: const Text('Submit'),
             ),
             const SizedBox(height: 24),
           ],

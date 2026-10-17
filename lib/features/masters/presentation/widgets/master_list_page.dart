@@ -226,7 +226,7 @@ class MasterFormSheet extends StatelessWidget {
                 onPressed: saving ? null : onSave,
                 child: saving
                     ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Save'),
+                    : const Text('Submit'),
               ),
             ],
           ),

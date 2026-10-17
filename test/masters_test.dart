@@ -162,12 +162,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // Name is required.
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Submit'));
     await tester.pump();
     expect(find.text('Name is required'), findsOneWidget);
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Name *'), 'Security');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Submit'));
     await tester.pumpAndSettle();
     expect(_departments.saved.last.name, 'Security');
     expect(_departments.saved.last.branchId, 1); // default Head Office, like the web
@@ -191,13 +191,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Mobile'), '0171');
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Save'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Submit'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Submit'));
     await tester.pumpAndSettle();
     expect(find.text('Enter a valid mobile number (01XXXXXXXXX)'), findsOneWidget);
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Mobile'), '01712345678');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Submit'));
     await tester.pumpAndSettle();
     final saved = _employees.saved.last;
     expect(saved.code, 'EMP-020');

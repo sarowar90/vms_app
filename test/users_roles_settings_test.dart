@@ -178,13 +178,13 @@ void main() {
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Name *'), 'Gate Two');
     await tester.enterText(find.widgetWithText(TextFormField, 'Username *'), 'gate2');
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Save'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Submit'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Submit'));
     await tester.pumpAndSettle();
     expect(find.text('Password is required'), findsOneWidget);
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Password *'), 'secret1');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Submit'));
     await tester.pumpAndSettle();
     expect(_users.saved.last.username, 'gate2');
     expect(_users.saved.last.roleId, 2);
@@ -202,7 +202,7 @@ void main() {
     await tester.tap(find.text('View'));
     await tester.pumpAndSettle();
     expect(find.textContaining('cannot be changed or deleted'), findsOneWidget);
-    expect(find.text('Save'), findsNothing);
+    expect(find.text('Submit'), findsNothing);
     await tester.pageBack();
     await tester.pumpAndSettle();
 
@@ -210,7 +210,7 @@ void main() {
     await tester.tap(find.text('New Role'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextFormField, 'Role Name (English) *'), 'Night Guard');
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Submit'));
     await tester.pumpAndSettle();
     expect(find.text('Select at least one permission'), findsOneWidget);
 
@@ -220,7 +220,7 @@ void main() {
     await tester.tap(find.text('Gate check-in / check-out'));
     await tester.pump();
     expect(find.text('2 / 5'), findsOneWidget);
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Submit'));
     await tester.pumpAndSettle();
     expect(_roles.saved.last.name, 'Night Guard');
     expect(_roles.saved.last.permissions, ['visits.checkin', 'reports.view']);
@@ -235,9 +235,9 @@ void main() {
 
     await tester.tap(find.text('Require host approval for pre-registrations'));
     await tester.pump();
-    await tester.ensureVisible(find.text('Save'));
+    await tester.ensureVisible(find.text('Submit'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Submit'));
     await tester.pumpAndSettle();
     expect(_settings.saved!.requireApproval, isFalse);
     expect(_settings.saved!.badgeFooter, 'Please return this pass at the reception before leaving.');

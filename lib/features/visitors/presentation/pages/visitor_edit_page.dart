@@ -138,7 +138,7 @@ class _VisitorEditPageState extends ConsumerState<VisitorEditPage> {
               icon: state.isLoading
                   ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.check),
-              label: const Text('Save'),
+              label: const Text('Submit'),
             ),
           ],
         ),
